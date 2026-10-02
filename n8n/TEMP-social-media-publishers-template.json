@@ -1,0 +1,143 @@
+{
+  "name": "Social Media Publishers - Instagram Threads X Reddit",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "SOCIAL MEDIA PUBLISHER TEMPLATE\n\nConnect your existing approved-post Code node -> Social Media Router.\nAll publisher nodes are DISABLED placeholders until API credentials and current endpoints are configured.\nInstagram + Threads need a publicly reachable image URL.\nX API is usage-priced in 2026.\nReddit requires valid OAuth/API access and subreddit rules must be followed."
+      },
+      "id": "fe45cf47-ef22-4644-acb7-5ee790f99bd7",
+      "name": "SETUP NOTES - READ FIRST",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [0, -360]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const item = $input.first();\nconst j = item.json || {};\n\nreturn [\n  { json: { platform: \"instagram\", caption: [j.instagram?.caption || \"\", ...(j.instagram?.hashtags || [])].join(\" \").trim() }, binary: item.binary },\n  { json: { platform: \"threads\", caption: [j.threads?.text || \"\", ...(j.threads?.hashtags || [])].join(\" \").trim() }, binary: item.binary },\n  { json: { platform: \"x\", text: [j.x?.text || \"\", ...(j.x?.hashtags || [])].join(\" \").trim() }, binary: item.binary },\n  { json: { platform: \"reddit\", title: j.reddit?.title || \"\", body: [j.reddit?.body || \"\", ...(j.reddit?.hashtags || [])].join(\"\\n\\n\").trim() }, binary: item.binary }\n];"
+      },
+      "id": "d2d17832-925f-4f7a-92d6-5c30aa2075fa",
+      "name": "Social Media Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2.2,
+      "position": [0, 0],
+      "notes": "Connect this to Prepare Approved Post. It creates one item per platform and keeps the original image binary.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "options": {"fallbackOutput": "extra"},
+        "rules": {"values": [
+          {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2}, "conditions": [{"leftValue": "={{ $json.platform }}", "rightValue": "instagram", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}},
+          {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2}, "conditions": [{"leftValue": "={{ $json.platform }}", "rightValue": "threads", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}},
+          {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2}, "conditions": [{"leftValue": "={{ $json.platform }}", "rightValue": "x", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}},
+          {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2}, "conditions": [{"leftValue": "={{ $json.platform }}", "rightValue": "reddit", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}}
+        ]}
+      },
+      "id": "4dc8dc6f-eb5b-45ba-8a39-0c9bc229399b",
+      "name": "Route by Platform",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [260, 0],
+      "notes": "Routes the four generated platform payloads.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {"method": "POST", "url": "https://graph.facebook.com/v24.0/REPLACE_WITH_IG_USER_ID/media", "sendBody": true, "contentType": "form-urlencoded", "bodyParameters": {"parameters": [{"name": "image_url", "value": "https://REPLACE-WITH-PUBLIC-IMAGE-URL"}, {"name": "caption", "value": "={{ $json.caption }}"}, {"name": "access_token", "value": "REPLACE_WITH_META_ACCESS_TOKEN"}]}, "options": {"timeout": 60000}},
+      "id": "0bd7506d-714f-4411-920f-6a32a7cc97cf",
+      "name": "Instagram - Create Media Container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [560, -240],
+      "disabled": true,
+      "notes": "PLACEHOLDER. Configure current Meta credentials, account ID, permissions and a publicly reachable image URL before enabling.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {"method": "POST", "url": "https://graph.facebook.com/v24.0/REPLACE_WITH_IG_USER_ID/media_publish", "sendBody": true, "contentType": "form-urlencoded", "bodyParameters": {"parameters": [{"name": "creation_id", "value": "={{ $json.id }}"}, {"name": "access_token", "value": "REPLACE_WITH_META_ACCESS_TOKEN"}]}, "options": {"timeout": 60000}},
+      "id": "4470da6a-a86d-4849-9a47-99067f2035d4",
+      "name": "Instagram - Publish Container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [820, -240],
+      "disabled": true,
+      "notes": "PLACEHOLDER. Keep disabled until the create-container step is tested.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {"method": "POST", "url": "https://graph.threads.net/v1.0/REPLACE_WITH_THREADS_USER_ID/threads", "sendBody": true, "contentType": "form-urlencoded", "bodyParameters": {"parameters": [{"name": "media_type", "value": "IMAGE"}, {"name": "image_url", "value": "https://REPLACE-WITH-PUBLIC-IMAGE-URL"}, {"name": "text", "value": "={{ $json.caption }}"}, {"name": "access_token", "value": "REPLACE_WITH_THREADS_ACCESS_TOKEN"}]}, "options": {"timeout": 60000}},
+      "id": "cb1645e3-e870-4c88-b163-b162c974b7d7",
+      "name": "Threads - Create Media Container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [560, -60],
+      "disabled": true,
+      "notes": "PLACEHOLDER. Verify the current Threads API endpoint and permissions before enabling.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {"method": "POST", "url": "https://graph.threads.net/v1.0/REPLACE_WITH_THREADS_USER_ID/threads_publish", "sendBody": true, "contentType": "form-urlencoded", "bodyParameters": {"parameters": [{"name": "creation_id", "value": "={{ $json.id }}"}, {"name": "access_token", "value": "REPLACE_WITH_THREADS_ACCESS_TOKEN"}]}, "options": {"timeout": 60000}},
+      "id": "60ef6f52-314b-4de8-b799-03ee4b66b1e1",
+      "name": "Threads - Publish Container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [820, -60],
+      "disabled": true,
+      "notes": "PLACEHOLDER. Keep disabled until the create-container step is tested.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {"method": "POST", "url": "https://upload.twitter.com/1.1/media/upload.json", "sendBody": true, "contentType": "multipart-form-data", "bodyParameters": {"parameters": [{"parameterType": "formBinaryData", "name": "media", "inputDataFieldName": "image"}]}, "options": {"timeout": 60000}},
+      "id": "17e8e195-881b-4ccf-8537-49c25548060e",
+      "name": "X - Upload Media",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [560, 120],
+      "disabled": true,
+      "notes": "PLACEHOLDER. X media upload/auth flow can change; verify the current X developer docs. X posting is currently pay-per-use.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {"method": "POST", "url": "https://api.x.com/2/tweets", "sendHeaders": true, "headerParameters": {"parameters": [{"name": "Authorization", "value": "Bearer REPLACE_WITH_X_USER_ACCESS_TOKEN"}, {"name": "Content-Type", "value": "application/json"}]}, "sendBody": true, "contentType": "json", "jsonBody": "={{ JSON.stringify({ text: $json.text, media: { media_ids: [$json.media_id || $json.id] } }) }}", "options": {"timeout": 60000}},
+      "id": "619bcd71-3b1c-4f25-8bc2-a9e1dcffb9a1",
+      "name": "X - Create Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [820, 120],
+      "disabled": true,
+      "notes": "PLACEHOLDER. Configure OAuth/user auth and the media-upload response mapping before enabling.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {"method": "POST", "url": "https://oauth.reddit.com/api/submit", "sendHeaders": true, "headerParameters": {"parameters": [{"name": "Authorization", "value": "Bearer REPLACE_WITH_REDDIT_ACCESS_TOKEN"}, {"name": "User-Agent", "value": "social-ai-auto-poster/1.0 by REPLACE_WITH_REDDIT_USERNAME"}]}, "sendBody": true, "contentType": "form-urlencoded", "bodyParameters": {"parameters": [{"name": "sr", "value": "REPLACE_WITH_SUBREDDIT"}, {"name": "kind", "value": "image"}, {"name": "title", "value": "={{ $json.title }}"}, {"name": "url", "value": "https://REPLACE-WITH-PUBLIC-IMAGE-URL"}, {"name": "resubmit", "value": "true"}, {"name": "sendreplies", "value": "true"}]}, "options": {"timeout": 60000}},
+      "id": "65bc72eb-2f07-4884-b3ab-b13eced7e3d3",
+      "name": "Reddit - Submit Image Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [560, 300],
+      "disabled": true,
+      "notes": "PLACEHOLDER. Configure OAuth, subreddit and media URL. Reddit documents image submissions through /api/submit.",
+      "notesInFlow": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Social Media Router": {"main": [[{"node": "Route by Platform", "type": "main", "index": 0}]]},
+    "Route by Platform": {"main": [
+      [{"node": "Instagram - Create Media Container", "type": "main", "index": 0}],
+      [{"node": "Threads - Create Media Container", "type": "main", "index": 0}],
+      [{"node": "X - Upload Media", "type": "main", "index": 0}],
+      [{"node": "Reddit - Submit Image Post", "type": "main", "index": 0}],
+      []
+    ]},
+    "Instagram - Create Media Container": {"main": [[{"node": "Instagram - Publish Container", "type": "main", "index": 0}]]},
+    "Threads - Create Media Container": {"main": [[{"node": "Threads - Publish Container", "type": "main", "index": 0}]]},
+    "X - Upload Media": {"main": [[{"node": "X - Create Post", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "versionId": "0c291af7-d4f4-4804-8959-69e691534e6a",
+  "meta": {"templateCredsSetupCompleted": false},
+  "tags": []
+}
