@@ -37,3 +37,15 @@
 - Example workflow export
 
 Publishing stays disabled until credentials are configured and the user approves generated content.
+
+
+## Current implementation status
+
+- [x] Added `.env.example` for local Ollama configuration.
+- [x] Added the social content-generation prompt.
+- [x] Added the first importable n8n draft workflow: Telegram image -> original binary -> Ollama vision -> structured JSON -> Telegram draft.
+- [x] Added local setup instructions.
+- [ ] Add approval/publish workflow.
+- [ ] Add official Instagram/Threads publisher.
+- [ ] Add Reddit publisher.
+- [ ] Add X publisher only if its current API access/cost is acceptable.
