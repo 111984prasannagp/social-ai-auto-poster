@@ -61,14 +61,14 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:11434/api/chat",
+        "url": "http://host.docker.internal:20128/v1/chat/completions",
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ model: 'qwen2.5vl:3b', stream: false, format: 'json', messages: [{ role: 'user', content: 'Analyze this image and create professional platform-specific social copy. Return valid JSON only. Do not invent facts. Include topic, audience, visual_summary, hook, instagram, threads, x, and reddit.', images: [$binary.image.data] }] }) }}"
+        "body": "={{ JSON.stringify({ model: 'auto/best-vision', messages: [{ role: 'user', content: [{ type: 'text', text: 'Analyze this image and create professional platform-specific social copy. Return valid JSON only. Do not invent facts. Include topic, audience, visual_summary, hook, instagram, threads, x, and reddit.' }, { type: 'image_url', image_url: { url: 'data:' + ($binary.image.mimeType || 'image/jpeg') + ';base64,' + $binary.image.data } }] }] }) }}"
       },
       "id": "a5555555-5555-4555-8555-555555555555",
-      "name": "Ollama Vision AI",
+      "name": "OmniRoute Vision AI",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -152,22 +152,22 @@
         ]
       ]
     },
-    "Ollama Vision AI": {
+    "Parse AI JSON": {
       "main": [
         [
           {
-            "node": "Parse AI JSON",
+            "node": "Send Draft to Telegram",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse AI JSON": {
+    "OmniRoute Vision AI": {
       "main": [
         [
           {
-            "node": "Send Draft to Telegram",
+            "node": "Parse AI JSON",
             "type": "main",
             "index": 0
           }
