@@ -1,0 +1,187 @@
+{
+  "name": "Social AI Auto Poster - Draft",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "a1111111-1111-4111-8111-111111111111",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $json.message || {};\nconst photos = msg.photo || [];\nif (!photos.length) throw new Error('Send an image/photo to the bot.');\nconst largest = photos[photos.length - 1];\nreturn [{ json: { chat_id: msg.chat && msg.chat.id, file_id: largest.file_id } }];"
+      },
+      "id": "a2222222-2222-4222-8222-222222222222",
+      "name": "Get Largest Telegram Photo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "fileId": "={{ $json.file_id }}"
+      },
+      "id": "a3333333-3333-4333-8333-333333333333",
+      "name": "Telegram Get File",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst bin = item.binary || {};\nconst keys = Object.keys(bin);\nif (!keys.length) throw new Error('Telegram file was not returned as binary data. Check the Telegram node output/version.');\nreturn [{ json: item.json, binary: { image: bin[keys[0]] } }];"
+      },
+      "id": "a4444444-4444-4444-8444-444444444444",
+      "name": "Preserve Original Image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ model: 'qwen2.5vl:3b', stream: false, format: 'json', messages: [{ role: 'user', content: 'Analyze this image and create professional platform-specific social copy. Return valid JSON only. Do not invent facts. Include topic, audience, visual_summary, hook, instagram, threads, x, and reddit.', images: [$binary.image.data] }] }) }}"
+      },
+      "id": "a5555555-5555-4555-8555-555555555555",
+      "name": "Ollama Vision AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = ($json.message && $json.message.content) || $json.response || '';\nif (!raw) throw new Error('Ollama returned no content.');\nlet parsed;\ntry { parsed = JSON.parse(raw); } catch (e) {\n  const cleaned = raw.replace(/^```(?:json)?\\s*/i, '').replace(/\\s*```$/i, '').trim();\n  parsed = JSON.parse(cleaned);\n}\nreturn [{ json: parsed }];"
+      },
+      "id": "a6666666-6666-4666-8666-666666666666",
+      "name": "Parse AI JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Get Largest Telegram Photo').item.json.chat_id }}",
+        "text": "={{ 'AI draft generated\\n\\nTopic: ' + ($json.topic || 'Unknown') + '\\n\\nInstagram:\\n' + (($json.instagram && $json.instagram.caption) || '') + '\\n' + (($json.instagram && $json.instagram.hashtags) || []).join(' ') + '\\n\\nThreads:\\n' + (($json.threads && $json.threads.text) || '') + '\\n' + (($json.threads && $json.threads.hashtags) || []).join(' ') + '\\n\\nX:\\n' + (($json.x && $json.x.text) || '') + '\\n' + (($json.x && $json.x.hashtags) || []).join(' ') + '\\n\\nReddit:\\n' + (($json.reddit && $json.reddit.title) || '') + '\\n' + (($json.reddit && $json.reddit.body) || '') }}"
+      },
+      "id": "a7777777-7777-4777-8777-777777777777",
+      "name": "Send Draft to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1480,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Largest Telegram Photo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Largest Telegram Photo": {
+      "main": [
+        [
+          {
+            "node": "Telegram Get File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Get File": {
+      "main": [
+        [
+          {
+            "node": "Preserve Original Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preserve Original Image": {
+      "main": [
+        [
+          {
+            "node": "Ollama Vision AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Vision AI": {
+      "main": [
+        [
+          {
+            "node": "Parse AI JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI JSON": {
+      "main": [
+        [
+          {
+            "node": "Send Draft to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "11111111-2222-4333-8444-555555555555",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
