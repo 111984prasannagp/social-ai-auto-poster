@@ -1,5 +1,5 @@
 {
-  "name": "Social AI Auto Poster - Draft",
+  "name": "Social AI Auto Poster - Free OmniRoute Draft",
   "nodes": [
     {
       "parameters": {
@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const msg = $json.message || {};\nconst photos = msg.photo || [];\nif (!photos.length) throw new Error('Send an image/photo to the bot.');\nconst largest = photos[photos.length - 1];\nreturn [{ json: { chat_id: msg.chat && msg.chat.id, file_id: largest.file_id } }];"
+        "jsCode": "const msg = $json.message || {};\nconst photos = msg.photo || [];\nif (!photos.length) throw new Error('Send one image/photo to the bot.');\nconst largest = photos[photos.length - 1];\nreturn [{ json: { chat_id: msg.chat && msg.chat.id, file_id: largest.file_id } }];"
       },
       "id": "a2222222-2222-4222-8222-222222222222",
       "name": "Get Largest Telegram Photo",
@@ -47,7 +47,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first();\nconst bin = item.binary || {};\nconst keys = Object.keys(bin);\nif (!keys.length) throw new Error('Telegram file was not returned as binary data. Check the Telegram node output/version.');\nreturn [{ json: item.json, binary: { image: bin[keys[0]] } }];"
+        "jsCode": "const item = $input.first();\nconst bin = item.binary || {};\nconst keys = Object.keys(bin);\nif (!keys.length) throw new Error('Telegram did not return binary image data. Check the Telegram credential/node output.');\nconst key = keys[0];\nreturn [{ json: { ...item.json, binaryKey: 'image' }, binary: { image: bin[key] } }];"
       },
       "id": "a4444444-4444-4444-8444-444444444444",
       "name": "Preserve Original Image",
@@ -62,13 +62,26 @@
       "parameters": {
         "method": "POST",
         "url": "http://host.docker.internal:20128/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REPLACE_WITH_YOUR_OMNIROUTE_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ model: 'auto/best-vision', messages: [{ role: 'user', content: [{ type: 'text', text: 'Analyze this image and create professional platform-specific social copy. Return valid JSON only. Do not invent facts. Include topic, audience, visual_summary, hook, instagram, threads, x, and reddit.' }, { type: 'image_url', image_url: { url: 'data:' + ($binary.image.mimeType || 'image/jpeg') + ';base64,' + $binary.image.data } }] }] }) }}"
+        "body": "={{ JSON.stringify({ model: 'openrouter/minimax/minimax-m3:free', messages: [{ role: 'system', content: 'You are a professional social media copywriter. The uploaded image is the source of truth. Analyze only what is visibly supported. Do not invent names, brands, locations, statistics, claims, events, or facts. Create useful, polished, platform-specific copy. Do not promise virality, followers, or likes. Avoid spam and repetitive hashtags. Return valid JSON only with exactly these top-level keys: topic, audience, hook, instagram, threads, x, reddit. instagram must contain caption and hashtags array. threads must contain text and hashtags array. x must contain text and hashtags array. reddit must contain title, body, and hashtags array. Keep X within normal post length. If the image is ambiguous, write conservatively.' }, { role: 'user', content: [{ type: 'text', text: 'Analyze this image and generate professional social copy for Instagram, Threads, X, and Reddit. Make each platform native, concise, useful, and attractive. Return JSON only.' }, { type: 'image_url', image_url: { url: 'data:' + ($binary.image.mimeType || 'image/jpeg') + ';base64,' + $binary.image.data } }] }] }) }}"
       },
       "id": "a5555555-5555-4555-8555-555555555555",
-      "name": "OmniRoute Vision AI",
+      "name": "OmniRoute Free Vision AI",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -78,7 +91,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const raw = ($json.message && $json.message.content) || $json.response || '';\nif (!raw) throw new Error('Ollama returned no content.');\nlet parsed;\ntry { parsed = JSON.parse(raw); } catch (e) {\n  const cleaned = raw.replace(/^```(?:json)?\\s*/i, '').replace(/\\s*```$/i, '').trim();\n  parsed = JSON.parse(cleaned);\n}\nreturn [{ json: parsed }];"
+        "jsCode": "const raw = ($json.choices && $json.choices[0] && $json.choices[0].message && $json.choices[0].message.content) || ($json.message && $json.message.content) || $json.response || '';\nif (!raw) throw new Error('OmniRoute returned no model content.');\nlet text = String(raw).trim();\ntext = text.replace(/^```(?:json)?\\s*/i, '').replace(/\\s*```$/i, '').trim();\nlet parsed;\ntry { parsed = JSON.parse(text); } catch (e) { throw new Error('AI did not return valid JSON: ' + e.message + '\\nRaw: ' + text.slice(0, 1000)); }\nreturn [{ json: parsed }];"
       },
       "id": "a6666666-6666-4666-8666-666666666666",
       "name": "Parse AI JSON",
@@ -94,7 +107,7 @@
         "resource": "message",
         "operation": "sendMessage",
         "chatId": "={{ $('Get Largest Telegram Photo').item.json.chat_id }}",
-        "text": "={{ 'AI draft generated\\n\\nTopic: ' + ($json.topic || 'Unknown') + '\\n\\nInstagram:\\n' + (($json.instagram && $json.instagram.caption) || '') + '\\n' + (($json.instagram && $json.instagram.hashtags) || []).join(' ') + '\\n\\nThreads:\\n' + (($json.threads && $json.threads.text) || '') + '\\n' + (($json.threads && $json.threads.hashtags) || []).join(' ') + '\\n\\nX:\\n' + (($json.x && $json.x.text) || '') + '\\n' + (($json.x && $json.x.hashtags) || []).join(' ') + '\\n\\nReddit:\\n' + (($json.reddit && $json.reddit.title) || '') + '\\n' + (($json.reddit && $json.reddit.body) || '') }}"
+        "text": "={{ 'DRAFT READY - approval required before publishing\\n\\nTopic: ' + ($json.topic || 'Unknown') + '\\n\\nINSTAGRAM\\n' + (($json.instagram && $json.instagram.caption) || '') + '\\n' + (($json.instagram && $json.instagram.hashtags) || []).join(' ') + '\\n\\nTHREADS\\n' + (($json.threads && $json.threads.text) || '') + '\\n' + (($json.threads && $json.threads.hashtags) || []).join(' ') + '\\n\\nX\\n' + (($json.x && $json.x.text) || '') + '\\n' + (($json.x && $json.x.hashtags) || []).join(' ') + '\\n\\nREDDIT\\nTitle: ' + (($json.reddit && $json.reddit.title) || '') + '\\n' + (($json.reddit && $json.reddit.body) || '') + '\\n' + (($json.reddit && $json.reddit.hashtags) || []).join(' ') + '\\n\\nReply APPROVE after reviewing. Publishing adapters will be connected only after API credentials are configured.' }}"
       },
       "id": "a7777777-7777-4777-8777-777777777777",
       "name": "Send Draft to Telegram",
@@ -145,7 +158,18 @@
       "main": [
         [
           {
-            "node": "Ollama Vision AI",
+            "node": "OmniRoute Free Vision AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OmniRoute Free Vision AI": {
+      "main": [
+        [
+          {
+            "node": "Parse AI JSON",
             "type": "main",
             "index": 0
           }
@@ -162,24 +186,13 @@
           }
         ]
       ]
-    },
-    "OmniRoute Vision AI": {
-      "main": [
-        [
-          {
-            "node": "Parse AI JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "11111111-2222-4333-8444-555555555555",
+  "versionId": "22222222-3333-4444-8555-666666666666",
   "meta": {
     "templateCredsSetupCompleted": false
   },
