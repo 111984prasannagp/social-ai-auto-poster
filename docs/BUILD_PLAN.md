@@ -1,52 +1,65 @@
 # Build Plan
 
-## Phase 1 — Foundation
-- Local n8n
-- Telegram bot
-- OmniRoute on Windows
-- Free vision-capable model
-- JSON output contract
-- Safe-mode approval
+## Phase 1 — Foundation and safe image workflow
+**Status: in progress**
 
-## Phase 2 — Content generation
-- Analyze image
-- Detect topic and useful context
-- Generate clear, attractive, non-spammy platform-specific copy
-- Generate relevant hashtags
-- Avoid guaranteed-viral claims
-- Preserve the original image as the only media asset
+- [x] Local n8n in Docker
+- [x] Telegram intake
+- [x] Preserve image binary
+- [x] Local OmniRoute connection
+- [x] Free vision-capable AI path
+- [x] Structured JSON response
+- [x] Human approval gate
+- [x] Instagram / Threads / Facebook scope
+- [x] Credential placeholders
+- [x] Safe inactive-by-default workflow
+- [ ] Complete live publishing validation
 
-## Phase 3 — Publishing
-- Instagram official API
-- Threads official API
-- Reddit official API
-- X official API only if current access/cost is acceptable
+## Phase 2 — Content quality
+**Status: in progress**
 
-## Phase 4 — Reliability
-- Validation
-- Duplicate detection
-- Retry with backoff
-- Rate-limit handling
-- Per-platform success/failure
-- Telegram completion report
+- [x] Analyze image topic/context
+- [x] Platform-specific copy
+- [x] Relevant hashtags
+- [x] Non-spammy output
+- [x] No guaranteed-viral claims
+- [ ] AI caption quality checker
+- [ ] Brand voice
+- [ ] Content safety checker
+- [ ] Caption variations
+- [ ] Regenerate/edit before publishing
 
-## Phase 5 — Documentation
-- Setup guide
-- Credential guide
-- Troubleshooting
-- Changelog
-- Example workflow export
+## Phase 3 — Reliability
+**Status: planned**
 
-Publishing stays disabled until credentials are configured and the user approves generated content.
+- [ ] Duplicate protection
+- [ ] Automatic retry
+- [ ] Retry only failed platforms
+- [ ] Error logging
+- [ ] Publishing status dashboard
+- [ ] Health check
+- [ ] Configuration backup
 
-## Current implementation status
+## Phase 4 — Multi-provider AI
+**Status: planned**
 
-- [x] Added `.env.example` for local configuration.
-- [x] Added the social content-generation prompt.
-- [x] Added an importable n8n workflow: Telegram image -> original binary -> OmniRoute free vision -> structured JSON -> Telegram draft.
-- [x] Added local OmniRoute setup instructions.
-- [ ] Add Telegram approval gate.
-- [ ] Add official Instagram/Threads publisher.
-- [ ] Add Reddit publisher.
-- [ ] Add X publisher only if current API access/cost is acceptable.
-- [ ] Add retry, duplicate detection, and completion reporting.
+Target free-first providers: OmniRoute, OpenRouter, Google AI Studio/Gemini, Groq, NVIDIA.
+
+Planned behavior: capability matching, compatible model fallback, timeout/rate-limit handling, circuit breaker, recently-failed provider cooldown, and a cost guard that rejects paid models.
+
+## Phase 5 — Scale and convenience
+**Status: planned**
+
+- [ ] Batch/multiple-image processing
+- [ ] Telegram approval center
+- [ ] Approve All
+- [ ] Scheduling
+- [ ] Post history/database
+- [ ] Analytics
+- [ ] Multiple accounts later
+- [ ] YouTube video/Shorts pipeline
+- [ ] Additional platforms later
+
+## Important rule
+
+Build and test one layer at a time. Automatic publishing stays disabled until credentials, image delivery, AI output, approval, and platform publishing are validated.
