@@ -1,26 +1,49 @@
 # Social AI Auto Poster
 
-Free-first local automation: send one finished image to Telegram, let local AI create platform-specific text, approve it, then publish the original image to Instagram, Threads, X, and Reddit.
+Free-first local automation for turning one finished image into platform-specific social copy, getting human approval in Telegram, and publishing the original image through official platform APIs.
 
-## Core rules
-- No paid AI API required.
-- AI runs locally through Ollama.
-- n8n is self-hosted locally.
-- The original image is preserved for publishing; AI is used for analysis/text only.
-- Human approval is the default before publishing.
-- Never commit tokens, passwords, OAuth secrets, or .env files.
+## Current Phase 1
 
-## Architecture
-Telegram -> Local n8n -> Ollama Vision Model -> Platform-specific content -> Approval -> Official platform APIs -> Telegram result.
+Telegram → local n8n (Docker) → OmniRoute (Windows) → free vision-capable AI → structured social copy → Telegram approval → Instagram / Threads / Facebook publishing → Telegram report.
+
+### Platforms
+- Instagram — 1 account
+- Threads — 1 account
+- Facebook — 1 Page
+- YouTube — planned later as a separate video/Shorts pipeline
+
+X and Reddit are currently out of Phase 1.
 
 ## Status
-Phase 1: repository structure and architecture.
-Phase 2: Telegram intake + Ollama vision generation.
-Phase 3: platform credentials and publishing adapters.
-Phase 4: testing, retries, rate limits, and logging.
 
-## Free-only note
-Platform APIs can have eligibility, rate limits, or fees. This project does not bypass platform rules and does not claim guaranteed free API access forever for every platform.
+- [x] Local n8n foundation
+- [x] Telegram image intake
+- [x] Preserve downloaded image binary
+- [x] Local OmniRoute OpenAI-compatible endpoint
+- [x] Free vision-capable AI path
+- [x] Structured JSON content generation
+- [x] Platform-specific Instagram/Threads/Facebook copy design
+- [x] Telegram human approval gate
+- [x] Credential placeholders in exported workflow
+- [x] Safe inactive-by-default workflow design
+- [ ] Final live publishing validation
+- [ ] Automatic retry and failure handling
+- [ ] Duplicate protection
+- [ ] Publishing dashboard
+- [ ] Multi-provider AI failover
+- [ ] Batch/album manager
+- [ ] Scheduling and post history
+- [ ] Analytics
+- [ ] YouTube video/Shorts pipeline
 
-## Hardware target
-Windows PC with NVIDIA RTX 3050 6GB + 16GB RAM, using a suitable small vision model in Ollama.
+## Free-first rules
+
+Free model/provider availability can change; nothing is guaranteed free forever. Official platform API eligibility, limits, and policies still apply. Never commit tokens, passwords, OAuth secrets, or `.env` files.
+
+## Quality rule
+
+AI generates text metadata. The uploaded image remains the publishing media asset.
+
+## Safety mode
+
+Human approval is the default before publishing. Keep publishing disabled while credentials and platform APIs are being tested.
