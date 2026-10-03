@@ -6,7 +6,7 @@ Updated: 2026-10-03
 
 A complete Social AI Auto Poster - Free Master n8n workflow has been generated as the final import artifact:
 
-- 65 nodes
+- 69 nodes
 - Telegram image/document intake
 - Human approval gate
 - Instagram + Threads + Facebook publishing adapters
